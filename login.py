@@ -4,7 +4,7 @@ import mysql.connector
 import os
 import time
 
-db = mysql.connector.connect(host="localhost",user="root",passwd="root",database="softwareproject")
+db = mysql.connector.connect(host="localhost",user="root",passwd="root",database="phase1")
 myCur = db.cursor()
 
 def error_destroy():
@@ -44,7 +44,7 @@ def register_user():
     	if check_duplicates(username_info):
     		error()
     	else:
-        	sql = "insert into users values(%s,%s)"
+        	sql = "insert into USERS values(%s,%s, false)"
         	t = (username_info, password_info)
         	myCur.execute(sql, t)
         	db.commit()
@@ -102,8 +102,18 @@ def fail_destroy():
 
 def logged():
     global logg
-    logg = Toplevel(root2)
+    logg = Toplevel(root)
+    root2.destroy()
     logg.title("Welcome")
+    logg.geometry("200x100")
+    Label(logg, text="Welcome {} ".format(username_verify.get()), fg="green", font="bold").pack()
+    Label(logg, text="").pack()
+    Button(logg, text="Log out", bg="green", width=8, height=1, command=logg_destroy).pack()
+
+def logged_admin():
+    global logg
+    logg = Toplevel(root2)
+    logg.title("Admin Panel")
     logg.geometry("200x100")
     Label(logg, text="Welcome {} ".format(username_verify.get()), fg="green", font="bold").pack()
     Label(logg, text="").pack()
@@ -120,7 +130,7 @@ def failed():
     Button(fail, text="Ok", bg="green", width=8, height=1, command=fail_destroy).pack()
 
 def check_duplicates(username_info):
-    sql = "select * from users where user = %s"
+    sql = "select * from USERS where user = %s"
     myCur.execute(sql,[(username_info)])
     results = myCur.fetchall()
     if results:
@@ -133,15 +143,29 @@ def check_duplicates(username_info):
 def login_verify():
     user_verify = username_verify.get()
     pas_verify = password_verify.get()
-    sql = "select * from users where user = %s and password = %s"
+    sql = "select * from USERS where user = %s and password = %s"
     myCur.execute(sql,[(user_verify),(pas_verify)])
     results = myCur.fetchall()
     if results:
-        for i in results:
-            logged()
-            break
+    	for i in results:
+    		if isadmin():
+    			logged_admin()
+    			break
+    		else:
+    			logged()
+    			break
     else:
-        failed()
+    	failed()
+def isadmin():
+	user_verify = username_verify.get()
+	sql = "select * from USERS where user = %s"
+	myCur.execute(sql, [(user_verify)])
+	results = myCur.fetchall()
+	results = list(results[0]) if results else None
+	if results[2] == 0:
+		return False
+	else:
+		return True
 
 
 def main_screen():
