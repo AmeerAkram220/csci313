@@ -3,6 +3,8 @@ from tkinter import messagebox
 import mysql.connector
 import os
 import time
+from adminpanel import *
+from userpanel import *
 
 db = mysql.connector.connect(host="localhost",user="root",passwd="root",database="phase1")
 myCur = db.cursor()
@@ -101,23 +103,27 @@ def fail_destroy():
     fail.destroy()
 
 def logged():
-    global logg
-    logg = Toplevel(root)
-    root2.destroy()
-    logg.title("Welcome")
-    logg.geometry("200x100")
-    Label(logg, text="Welcome {} ".format(username_verify.get()), fg="green", font="bold").pack()
-    Label(logg, text="").pack()
-    Button(logg, text="Log out", bg="green", width=8, height=1, command=logg_destroy).pack()
+	view_userpanel()
+	root2.destroy()
+    # global logg
+    # logg = Toplevel(root)
+    # root2.destroy()
+    # logg.title("Welcome")
+    # logg.geometry("200x100")
+    # Label(logg, text="Welcome {} ".format(username_verify.get()), fg="green", font="bold").pack()
+    # Label(logg, text="").pack()
+    # Button(logg, text="Log out", bg="green", width=8, height=1, command=logg_destroy).pack()
 
 def logged_admin():
-    global logg
-    logg = Toplevel(root2)
-    logg.title("Admin Panel")
-    logg.geometry("200x100")
-    Label(logg, text="Welcome {} ".format(username_verify.get()), fg="green", font="bold").pack()
-    Label(logg, text="").pack()
-    Button(logg, text="Log out", bg="green", width=8, height=1, command=logg_destroy).pack()
+	view_adminpanel()
+	root2.destroy()
+    # global logg
+    # logg = Toplevel(root2)
+    # logg.title("Admin Panel")
+    # logg.geometry("200x100")
+    # Label(logg, text="Welcome {} ".format(username_verify.get()), fg="green", font="bold").pack()
+    # Label(logg, text="").pack()
+    # Button(logg, text="Log out", bg="green", width=8, height=1, command=logg_destroy).pack()
 
 
 def failed():
