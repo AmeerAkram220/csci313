@@ -5,8 +5,8 @@ import tkinter.font as tkFont
 import mysql.connector
 import os
 import time
-db = mysql.connector.connect(host="localhost",user="root",passwd="root",database="phase1")
-myCur = db.cursor()
+from helper import *
+
 
 def view_userpanel():
 	global userpanel
@@ -190,24 +190,8 @@ def modifyprofile():
 			myCur.execute(sql,(name, int(age), address, phone, int(userid)))
 			db.commit()
 			time.sleep(0.50)
-			success()
+			success('Profile updated!')
 			modifyprofilegui.destroy()
 		except:
-			failed()
+			failed('Operation failed, please make sure you input the right data!')
 	modifyprofile_btn["command"] = updateprofile
-
-def failed():
-	global fail
-	fail = Toplevel()
-	fail.title("Error")
-	fail.geometry("200x100")
-	Label(fail, text="Operation failed, please make sure you input the right data!", fg="red", font="bold").pack()
-	Label(fail, text="").pack()
-
-def success():
-	global err
-	err = Toplevel()
-	err.title("Success")
-	err.geometry("600x100")
-	Label(err,text="Profile modified",fg="green",font="bold").pack()
-	Label(err,text="").pack()

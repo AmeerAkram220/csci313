@@ -5,35 +5,7 @@ import os
 import time
 from adminpanel import *
 from userpanel import *
-
-db = mysql.connector.connect(host="localhost",user="root",passwd="root",database="phase1")
-myCur = db.cursor()
-
-def error_destroy():
-    err.destroy()
-
-def succ_destroy():
-    succ.destroy()
-    root1.destroy()
-
-def error():
-    global err
-    err = Toplevel(root1)
-    err.title("Error")
-    err.geometry("600x100")
-    Label(err,text="All fields are required or username already registered.",fg="red",font="bold").pack()
-    Label(err,text="").pack()
-    Button(err,text="Ok",bg="grey",width=8,height=1,command=error_destroy).pack()
-
-def success():
-    global succ
-    succ = Toplevel(root1)
-    succ.title("Success")
-    succ.geometry("200x100")
-    Label(succ, text="Registration successful...", fg="green", font="bold").pack()
-    Label(succ, text="").pack()
-    Button(succ, text="Ok", bg="grey", width=8, height=1, command=succ_destroy).pack()
-
+from helper import *
 
 def register_user():
     username_info = username.get()
@@ -42,12 +14,12 @@ def register_user():
     results = myCur.fetchall()
     userid = len(results)+1
     if username_info == "":
-        error()
+        failed("All fields are required")
     elif password_info == "":
-        error()
+        failed("All fields are required")
     else:
     	if check_duplicates(username_info):
-    		error()
+    		failed("Username already exists")
     	else:
         	sql = "insert into USERS values(%s,%s,%s, false)"
         	t = (userid, username_info, password_info)
@@ -55,7 +27,7 @@ def register_user():
         	db.commit()
         	Label(root1, text="").pack()
         	time.sleep(0.50)
-        	success()
+        	success("Registration successful...")
 
 
 
@@ -98,12 +70,6 @@ def login():
     Button(root2, text="Login", bg="green",command=login_verify).pack()
     Label(root2, text="")
 
-def logg_destroy():
-    logg.destroy()
-    root2.destroy()
-
-def fail_destroy():
-    fail.destroy()
 
 def logged():
 	view_userpanel()
@@ -131,15 +97,6 @@ def logged_admin():
     # Button(logg, text="Log out", bg="green", width=8, height=1, command=logg_destroy).pack()
 
 
-def failed():
-    global fail
-    fail = Toplevel(root2)
-    fail.title("Invalid")
-    fail.geometry("200x100")
-    Label(fail, text="Invalid credentials...", fg="red", font="bold").pack()
-    Label(fail, text="").pack()
-    Button(fail, text="Ok", bg="green", width=8, height=1, command=fail_destroy).pack()
-
 def check_duplicates(username_info):
     sql = "select * from USERS where user = %s"
     myCur.execute(sql,[(username_info)])
@@ -166,7 +123,7 @@ def login_verify():
     			logged()
     			break
     else:
-    	failed()
+    	failed("Invalid credentials...")
 
 def isadmin():
 	user_verify = username_verify.get()
