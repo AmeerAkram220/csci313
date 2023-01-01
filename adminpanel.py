@@ -5,8 +5,7 @@ import tkinter.font as tkFont
 import mysql.connector
 import os
 import time
-db = mysql.connector.connect(host="localhost",user="root",passwd="root",database="phase1")
-myCur = db.cursor()
+from helper import *
 
 def view_adminpanel():
 	global adminpanel
@@ -203,9 +202,9 @@ def managedoctors():
 			db.commit()
 			managedoctorsgui.destroy()
 			time.sleep(0.50)
-			doctor_added()
+			success('Doctor added')
 		except:
-			failed()
+			failed("Operation failed, please make sure you input the right data!")
 
 	def deleteDoctor(*args):
 		name = str(doctorname_text.get())
@@ -214,48 +213,15 @@ def managedoctors():
 			myCur.execute(sql, [(name)])
 			db.commit()
 			managedoctorsgui.destroy()
-			doctor_deleted()
+			success('Doctor deleted')
 			time.sleep(0.50)
 		except:
-			doctor_deleted_error()
+			failed("Doctor cannot be deleted because they have appointments!")
 
 
 	Doctors_list.bind('<<ListboxSelect>>', onSelectDoctor)
 	addnewdoctor_btn["command"] = addDoctor
 	deletedoctor_btn["command"] = deleteDoctor
-
-
-def doctor_added():
-	global err
-	err = Toplevel()
-	err.title("Success")
-	err.geometry("600x100")
-	Label(err,text="Doctor added",fg="green",font="bold").pack()
-	Label(err,text="").pack()
-
-def doctor_deleted():
-	global err
-	err = Toplevel()
-	err.title("Success")
-	err.geometry("600x100")
-	Label(err,text="Doctor deleted",fg="green",font="bold").pack()
-	Label(err,text="").pack()
-
-def doctor_deleted_error():
-	global err
-	err = Toplevel()
-	err.title("Error")
-	err.geometry("600x100")
-	Label(err,text="Doctor cannot be deleted because they have appointments!",fg="green",font="bold").pack()
-	Label(err,text="").pack()
-
-def failed():
-	global fail
-	fail = Toplevel()
-	fail.title("Error")
-	fail.geometry("200x100")
-	Label(fail, text="Operation failed, please make sure you input the right data!", fg="red", font="bold").pack()
-	Label(fail, text="").pack()
 
 #def addDoctor():
 	#sql = "select * from DOCTOR where Name = %s"
