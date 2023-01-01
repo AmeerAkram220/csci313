@@ -7,7 +7,7 @@ import os
 import time
 db = mysql.connector.connect(host="localhost",user="root",passwd="root",database="phase1")
 myCur = db.cursor()
-
+#To make things easier
 def failed(text):
 	global fail
 	fail = Toplevel()
