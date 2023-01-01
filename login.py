@@ -38,6 +38,9 @@ def success():
 def register_user():
     username_info = username.get()
     password_info = password.get()
+    myCur.execute("select * from USERS")
+    results = myCur.fetchall()
+    userid = len(results)+1
     if username_info == "":
         error()
     elif password_info == "":
@@ -46,8 +49,8 @@ def register_user():
     	if check_duplicates(username_info):
     		error()
     	else:
-        	sql = "insert into USERS values(%s,%s, false)"
-        	t = (username_info, password_info)
+        	sql = "insert into USERS values(%s,%s,%s, false)"
+        	t = (userid, username_info, password_info)
         	myCur.execute(sql, t)
         	db.commit()
         	Label(root1, text="").pack()
@@ -104,6 +107,8 @@ def fail_destroy():
 
 def logged():
 	view_userpanel()
+	with open('w.text', 'w') as write:
+		write.write(username_verify.get())
 	root2.destroy()
     # global logg
     # logg = Toplevel(root)
@@ -162,13 +167,14 @@ def login_verify():
     			break
     else:
     	failed()
+
 def isadmin():
 	user_verify = username_verify.get()
 	sql = "select * from USERS where user = %s"
 	myCur.execute(sql, [(user_verify)])
 	results = myCur.fetchall()
 	results = list(results[0]) if results else None
-	if results[2] == 0:
+	if results[3] == 0:
 		return False
 	else:
 		return True
