@@ -7,7 +7,6 @@ import os
 import time
 from helper import *
 
-
 def view_userpanel():
 	global userpanel
 	userpanel = Toplevel()
@@ -48,7 +47,7 @@ def view_userpanel():
 	bookappointment_btn["justify"] = "center"
 	bookappointment_btn["text"] = "Book appointment"
 	bookappointment_btn.place(x=30,y=70,width=110,height=30)
-	#bookappointment_btn["command"] = self.bookappointment_btn_command
+	bookappointment_btn["command"] = bookappointment
 
 	viewappointments_btn=tk.Button(userpanel)
 	viewappointments_btn["bg"] = "#efefef"
@@ -157,8 +156,7 @@ def modifyprofile():
 	labeladdress["text"] = "Address"
 	labeladdress.place(x=60,y=140,width=70,height=25)
 
-	with open('w.text', 'r') as reader:
-		username = reader.readline()
+	username = get_username()
 	sql = "select id from USERS where user = %s"
 	myCur.execute(sql,[(username)])
 	results = myCur.fetchall()
@@ -167,21 +165,28 @@ def modifyprofile():
 	sql = "select * from PATIENT where patient_id = %s"
 	myCur.execute(sql,[(userid)])
 	results = myCur.fetchall()
-	results = list(results[0])
-	for result in results:
-		if result == "":
-			emptylabel["text"] = "Please update your profile!"
-			break
-	#[1, 'ameer', 20, 1, '6 october', '011551123']
-	name, age, address, phone = results[1], results[2], results[4], results[5]
-	phonenumber_text.delete(0, END)
-	address_text.delete(0, END)
-	age_text.delete(0, END)
-	name_text.delete(0, END)
-	name_text.insert(0, name)
-	age_text.insert(0, age)
-	address_text.insert(0, address)
-	phonenumber_text.insert(0, phone)
+	results = list(results[0]) if len(results) > 0 else None
+	if not results:
+		emptylabel["text"] = "Please update your profile!"
+		sql = "insert into PATIENT values(%s,%s,NULL, NULL, NULL, NULL)"
+		t = (get_userid(get_username()), get_username())
+		myCur.execute(sql, t)
+		db.commit()
+	else:
+			#[1, 'ameer', 20, 1, '6 october', '011551123']
+		name, age, address, phone = results[1], results[2], results[4], results[5]
+		phonenumber_text.delete(0, END)
+		address_text.delete(0, END)
+		age_text.delete(0, END)
+		name_text.delete(0, END)
+		name_text.insert(0, name)
+		age_text.insert(0, age)
+		address_text.insert(0, address)
+		phonenumber_text.insert(0, phone)
+		for result in results:
+			if result == "":
+				emptylabel["text"] = "Please update your profile!"
+				break
 
 	def updateprofile(*args):
 		name, age, address, phone = name_text.get(), age_text.get(), address_text.get(), phonenumber_text.get()
@@ -195,3 +200,138 @@ def modifyprofile():
 		except:
 			failed('Operation failed, please make sure you input the right data!')
 	modifyprofile_btn["command"] = updateprofile
+
+def bookappointment():
+	global choosedoctorgui
+	choosedoctorgui = Toplevel()
+	choosedoctorgui.title("Choose doctor")
+	width=400
+	height=400
+	screenwidth = choosedoctorgui.winfo_screenwidth()
+	screenheight = choosedoctorgui.winfo_screenheight()
+	alignstr = '%dx%d+%d+%d' % (width, height, (screenwidth - width) / 2, (screenheight - height) / 2)
+	choosedoctorgui.geometry(alignstr)
+	choosedoctorgui.resizable(width=False, height=False)
+
+	doctornamelabel=tk.Label(choosedoctorgui)
+	ft = tkFont.Font(family='Times',size=0)
+	doctornamelabel["font"] = ft
+	doctornamelabel["fg"] = "#ff0b0b"
+	doctornamelabel["justify"] = "center"
+	doctornamelabel["text"] = ""
+	doctornamelabel.place(x=0,y=0,width=0,height=0)
+
+	doctorslist=tk.Listbox(choosedoctorgui)
+	doctorslist["borderwidth"] = "1px"
+	ft = tkFont.Font(family='Times',size=10)
+	doctorslist["font"] = ft
+	doctorslist["fg"] = "#333333"
+	doctorslist["justify"] = "center"
+	doctorslist.place(x=20,y=10,width=178,height=371)
+
+	myCur.execute("select * from DOCTOR")
+	results = myCur.fetchall()
+	for result in results:
+		result = list(result)
+		name = result[3]
+		doctorslist.insert(END,name)
+
+	date_text=tk.Entry(choosedoctorgui)
+	date_text["borderwidth"] = "1px"
+	ft = tkFont.Font(family='Times',size=10)
+	date_text["font"] = ft
+	date_text["fg"] = "#333333"
+	date_text["justify"] = "center"
+	date_text["text"] = "Entry"
+	date_text.place(x=220,y=300,width=160,height=30)
+
+	enterdate_label=tk.Label(choosedoctorgui)
+	ft = tkFont.Font(family='Times',size=10)
+	enterdate_label["font"] = ft
+	enterdate_label["fg"] = "#333333"
+	enterdate_label["justify"] = "center"
+	enterdate_label["text"] = "Enter date (YYYY-MM-DD)"
+	enterdate_label.place(x=200,y=270,width=204,height=30)
+
+	choosedoctor_btn=tk.Button(choosedoctorgui)
+	choosedoctor_btn["bg"] = "#5fb878"
+	ft = tkFont.Font(family='Times',size=10)
+	choosedoctor_btn["font"] = ft
+	choosedoctor_btn["fg"] = "#000000"
+	choosedoctor_btn["justify"] = "center"
+	choosedoctor_btn["text"] = "Choose doctor"
+	choosedoctor_btn.place(x=270,y=350,width=123,height=30)
+
+	def onSelectDoctor(evt, *args):
+		try:
+			w = evt.widget
+			index = int(w.curselection()[0])
+			name = w.get(index).lower()
+		except:
+			return
+		doctornamelabel["text"] = name
+
+	def choosetime(*args):
+		global choosetimegui
+		choosetimegui = Toplevel()
+		choosetimegui.title("Choose time")
+		width=400
+		height=400
+		screenwidth = choosetimegui.winfo_screenwidth()
+		screenheight = choosetimegui.winfo_screenheight()
+		alignstr = '%dx%d+%d+%d' % (width, height, (screenwidth - width) / 2, (screenheight - height) / 2)
+		choosetimegui.geometry(alignstr)
+		choosetimegui.resizable(width=False, height=False)
+
+		timenamelabel=tk.Label(choosetimegui)
+		ft = tkFont.Font(family='Times',size=0)
+		timenamelabel["font"] = ft
+		timenamelabel["fg"] = "#ff0b0b"
+		timenamelabel["justify"] = "center"
+		timenamelabel["text"] = ""
+		timenamelabel.place(x=0,y=0,width=0,height=0)
+
+		timeslist=tk.Listbox(choosetimegui)
+		timeslist["borderwidth"] = "1px"
+		ft = tkFont.Font(family='Times',size=10)
+		timeslist["font"] = ft
+		timeslist["fg"] = "#333333"
+		timeslist["justify"] = "center"
+		timeslist.place(x=20,y=10,width=178,height=371)
+
+		choosetime_btn=tk.Button(choosetimegui)
+		choosetime_btn["bg"] = "#5fb878"
+		ft = tkFont.Font(family='Times',size=10)
+		choosetime_btn["font"] = ft
+		choosetime_btn["fg"] = "#000000"
+		choosetime_btn["justify"] = "center"
+		choosetime_btn["text"] = "Choose time"
+		choosetime_btn.place(x=270,y=350,width=123,height=30)
+
+		doctorname = doctornamelabel["text"]
+		available_times = get_doctoravailabletimes(doctorname, date_text.get())
+		for time in available_times:
+			timeslist.insert(END,time)
+
+		def onSelectTime(evt, *args):
+			w = evt.widget
+			index = int(w.curselection()[0])
+			time = w.get(index)
+			timenamelabel["text"] = time
+		timeslist.bind('<<ListboxSelect>>', onSelectTime)
+
+		def makeappointment(*args):
+			myCur.execute("select * from APPOINTMENT")
+			results = myCur.fetchall()
+			appointmentid = len(results)+1
+			notes = 'aaa i forgot for now'
+			sql = "insert into APPOINTMENT values(%s,%s,%s,%s,%s,%s)" #LAST %S IS NOTES BS ANA MAYT RN HA3MLHA BOKRA
+			t = (appointmentid, get_doctorid(doctorname), date_text.get(), get_userid(get_username()), timenamelabel['text'], notes)
+			myCur.execute(sql, t)
+			db.commit()
+			choosetimegui.destroy()
+			success('Appointment booked with doctor ' + doctorname.capitalize())
+		choosetime_btn["command"] = makeappointment
+
+	doctorslist.bind('<<ListboxSelect>>', onSelectDoctor)
+	choosedoctor_btn["command"] = choosetime
